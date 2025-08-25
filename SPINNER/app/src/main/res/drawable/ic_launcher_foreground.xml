@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <group android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateX="21.6"
+        android:translateY="21.6">
+        
+        <!-- Spinner Wheel Background -->
+        <path
+            android:fillColor="@color/challenge_red"
+            android:pathData="M54,54 L54,0 A54,54 0 0,1 108,54 Z" />
+        
+        <path
+            android:fillColor="@color/challenge_blue"
+            android:pathData="M54,54 L108,54 A54,54 0 0,1 54,108 Z" />
+        
+        <path
+            android:fillColor="@color/challenge_green"
+            android:pathData="M54,54 L54,108 A54,54 0 0,1 0,54 Z" />
+        
+        <path
+            android:fillColor="@color/challenge_yellow"
+            android:pathData="M54,54 L0,54 A54,54 0 0,1 54,0 Z" />
+        
+        <!-- Center Circle -->
+        <path
+            android:fillColor="@color/spinner_gold"
+            android:pathData="M54,54 A8,8 0 1,1 54,46 A8,8 0 1,1 54,54 Z" />
+        
+        <!-- Divider Lines -->
+        <path
+            android:strokeColor="@color/white"
+            android:strokeWidth="2"
+            android:pathData="M54,0 L54,54" />
+        <path
+            android:strokeColor="@color/white"
+            android:strokeWidth="2"
+            android:pathData="M0,54 L54,54" />
+            
+    </group>
+</vector>

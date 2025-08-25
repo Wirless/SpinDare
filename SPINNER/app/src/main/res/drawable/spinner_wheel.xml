@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- RED Section (0-90 degrees) -->
+    <path
+        android:fillColor="@color/challenge_red"
+        android:pathData="M100,100 L100,0 A100,100 0 0,1 200,100 Z" />
+
+    <!-- BLUE Section (90-180 degrees) -->
+    <path
+        android:fillColor="@color/challenge_blue"
+        android:pathData="M100,100 L200,100 A100,100 0 0,1 100,200 Z" />
+
+    <!-- GREEN Section (180-270 degrees) -->
+    <path
+        android:fillColor="@color/challenge_green"
+        android:pathData="M100,100 L100,200 A100,100 0 0,1 0,100 Z" />
+
+    <!-- YELLOW Section (270-360 degrees) -->
+    <path
+        android:fillColor="@color/challenge_yellow"
+        android:pathData="M100,100 L0,100 A100,100 0 0,1 100,0 Z" />
+
+    <!-- Center Circle -->
+    <path
+        android:fillColor="@color/spinner_gold"
+        android:pathData="M100,100 A15,15 0 1,1 100,85 A15,15 0 1,1 100,100 Z" />
+
+    <!-- Divider Lines -->
+    <path
+        android:strokeColor="@color/white"
+        android:strokeWidth="3"
+        android:pathData="M100,0 L100,100" />
+    <path
+        android:strokeColor="@color/white"
+        android:strokeWidth="3"
+        android:pathData="M0,100 L100,100" />
+
+    <!-- Color Labels -->
+    <text
+        android:fontSize="16"
+        android:fontWeight="bold"
+        android:fillColor="@color/white"
+        android:text="RED"
+        android:x="140"
+        android:y="60" />
+    <text
+        android:fontSize="16"
+        android:fontWeight="bold"
+        android:fillColor="@color/white"
+        android:text="BLUE"
+        android:x="140"
+        android:y="140" />
+    <text
+        android:fontSize="16"
+        android:fontWeight="bold"
+        android:fillColor="@color/black"
+        android:text="GREEN"
+        android:x="40"
+        android:y="140" />
+    <text
+        android:fontSize="16"
+        android:fontWeight="bold"
+        android:fillColor="@color/black"
+        android:text="YELLOW"
+        android:x="40"
+        android:y="60" />
+
+</vector>

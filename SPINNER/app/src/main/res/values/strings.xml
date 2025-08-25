@@ -1,0 +1,103 @@
+<resources>
+    <string name="app_name">SPIN &amp; DARE</string>
+    
+    <!-- Challenge Categories -->
+    <string name="category_red">Pocałunek/Zbliżenie</string>
+    <string name="category_blue">Przytulenie/Gest</string>
+    <string name="category_green">Komplement/Śmieszna akcja</string>
+    <string name="category_yellow">Taniec/Akcja absurdalna</string>
+    
+    <!-- RED Challenges (Pocałunek/Zbliżenie) -->
+    <string name="red_1">Pocałuj osobę po lewej</string>
+    <string name="red_2">Pocałuj osobę po prawej</string>
+    <string name="red_3">Pocałuj osobę na wprost</string>
+    <string name="red_4">Zbliżenie z kimkolwiek w zasięgu ręki</string>
+    <string name="red_5">Pocałuj na policzek</string>
+    <string name="red_6">Pocałuj na czubek nosa</string>
+    <string name="red_7">Przyciągnij osobę do siebie i pocałuj</string>
+    <string name="red_8">Pocałuj w ramię</string>
+    <string name="red_9">Pocałuj w dłoń</string>
+    <string name="red_10">Pocałuj w czoło</string>
+    <string name="red_11">Pocałuj w policzek 2 osoby</string>
+    <string name="red_12">Pocałuj najbliższą osobę</string>
+    <string name="red_13">Pocałuj kogoś siedzącego obok</string>
+    <string name="red_14">Pocałuj w ucho (głupkowato)</string>
+    <string name="red_15">Pocałuj w rękę z gestem królewskim</string>
+    <string name="red_16">Pocałuj i zrób „air kiss" w stronę kogoś</string>
+    <string name="red_17">Pocałuj osobę, która najbardziej krzyczy</string>
+    <string name="red_18">Pocałuj w nos 2 osoby po kolei</string>
+    <string name="red_19">Pocałuj osobę, która ma najśmieszniejszą minę</string>
+    <string name="red_20">Pocałuj osobę w losowy sposób</string>
+    
+    <!-- BLUE Challenges (Przytulenie/Gest) -->
+    <string name="blue_1">Przytul osobę po lewej</string>
+    <string name="blue_2">Przytul osobę po prawej</string>
+    <string name="blue_3">Przytul 2 osoby jednocześnie</string>
+    <string name="blue_4">Przytul najbliższą osobę i udawaj misia</string>
+    <string name="blue_5">Przytul kogoś stojącego obok</string>
+    <string name="blue_6">Przytul osobę z największym uśmiechem</string>
+    <string name="blue_7">Przytul i obróć 360 stopni</string>
+    <string name="blue_8">Przytul osobę i zrób „high five"</string>
+    <string name="blue_9">Przytul i zaśpiewaj „la la la"</string>
+    <string name="blue_10">Przytul w łokieć</string>
+    <string name="blue_11">Przytul w ramię</string>
+    <string name="blue_12">Przytul i potrząśnij delikatnie</string>
+    <string name="blue_13">Przytul i udawaj drzewo</string>
+    <string name="blue_14">Przytul osobę najgłośniej krzyczącą</string>
+    <string name="blue_15">Przytul osobę w losowy sposób</string>
+    <string name="blue_16">Przytul osobę, która stoi w środku</string>
+    <string name="blue_17">Przytul kogoś i zrób mini taniec</string>
+    <string name="blue_18">Przytul i powiedz komplement</string>
+    <string name="blue_19">Przytul osobę, która się śmieje najgłośniej</string>
+    <string name="blue_20">Przytul losową osobę</string>
+    
+    <!-- GREEN Challenges (Komplement/Śmieszna akcja) -->
+    <string name="green_1">Powiedz komuś komplement</string>
+    <string name="green_2">Powiedz coś absurdalnego o sobie</string>
+    <string name="green_3">Udawaj kogoś przez 10 sek</string>
+    <string name="green_4">Powiedz najgłupszy żart jaki znasz</string>
+    <string name="green_5">Udawaj zwierzę</string>
+    <string name="green_6">Powiedz sekret, który każdy powinien znać</string>
+    <string name="green_7">Udawaj upadek w zabawny sposób</string>
+    <string name="green_8">Powiedz coś w języku wymyślonym przez siebie</string>
+    <string name="green_9">Powiedz coś komplementującego wszystkich wokół</string>
+    <string name="green_10">Udawaj, że jesteś DJ-em</string>
+    <string name="green_11">Powiedz coś śmiesznego i energicznie</string>
+    <string name="green_12">Zrób minę strasznie głupią</string>
+    <string name="green_13">Powiedz kogo najbardziej lubisz w pokoju</string>
+    <string name="green_14">Udawaj, że pijesz niewidzialny shot</string>
+    <string name="green_15">Powiedz „kocham imprezę!" z gestem</string>
+    <string name="green_16">Udawaj piosenkę i śpiewaj 5 sekund</string>
+    <string name="green_17">Powiedz coś, co każdy powinien powtórzyć</string>
+    <string name="green_18">Zrób głupią pozę</string>
+    <string name="green_19">Powiedz coś absurdalnego do losowej osoby</string>
+    <string name="green_20">Udawaj, że jesteś influencerem</string>
+    
+    <!-- YELLOW Challenges (Taniec/Akcja absurdalna) -->
+    <string name="yellow_1">Zrób mini taniec</string>
+    <string name="yellow_2">Zrób taniec w miejscu</string>
+    <string name="yellow_3">Zrób taniec na stole lub krześle</string>
+    <string name="yellow_4">Zrób „air dance" przez 10 sek</string>
+    <string name="yellow_5">Obróć się 3 razy i zatańcz</string>
+    <string name="yellow_6">Zrób absurdalny taniec z rękami</string>
+    <string name="yellow_7">Zatańcz z losową osobą</string>
+    <string name="yellow_8">Udawaj robota i tańcz</string>
+    <string name="yellow_9">Zrób taniec misia</string>
+    <string name="yellow_10">Zrób taniec zombie</string>
+    <string name="yellow_11">Zrób taniec kangura</string>
+    <string name="yellow_12">Zrób taniec na jednej nodze</string>
+    <string name="yellow_13">Zrób taniec „podłoga w ogień"</string>
+    <string name="yellow_14">Zrób taniec w parach</string>
+    <string name="yellow_15">Zrób absurdalny taniec solo</string>
+    <string name="yellow_16">Tańcz z wyciągniętymi rękami</string>
+    <string name="yellow_17">Zrób taniec i krzycz „woo!"</string>
+    <string name="yellow_18">Zrób taniec po kole</string>
+    <string name="yellow_19">Zrób taniec jak w teledysku</string>
+    <string name="yellow_20">Zrób taniec naśladujący losową osobę</string>
+    
+    <!-- UI Elements -->
+    <string name="spin_button">SPIN!</string>
+    <string name="tap_to_spin">Tap to SPIN!</string>
+    <string name="party_mode">PARTY MODE</string>
+    <string name="challenge_text">Challenge will appear here!</string>
+</resources>
