@@ -35,11 +35,14 @@ class ChallengeManager(private val context: Context) {
     fun getColorFromRotation(degrees: Float): ChallengeColor {
         val normalizedDegrees = (degrees + 360) % 360
         
+        // The wheel is drawn with RED at top (0°), BLUE at right (90°), GREEN at bottom (180°), YELLOW at left (270°)
+        // But when we rotate the wheel, we need to account for the rotation direction
         return when {
             normalizedDegrees >= 0 && normalizedDegrees < 90 -> ChallengeColor.RED
             normalizedDegrees >= 90 && normalizedDegrees < 180 -> ChallengeColor.BLUE
             normalizedDegrees >= 180 && normalizedDegrees < 270 -> ChallengeColor.GREEN
-            else -> ChallengeColor.YELLOW
+            normalizedDegrees >= 270 && normalizedDegrees < 360 -> ChallengeColor.YELLOW
+            else -> ChallengeColor.RED // Fallback
         }
     }
 

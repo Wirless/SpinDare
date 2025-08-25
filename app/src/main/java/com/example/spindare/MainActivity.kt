@@ -13,17 +13,18 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +33,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.spindare.ui.theme.SpinDareTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.rememberCoroutineScope
+import kotlin.math.atan2
+import kotlin.math.sqrt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,6 +61,7 @@ fun SpinnerGame() {
     val context = LocalContext.current
     val challengeManager = remember { ChallengeManager(context) }
     val vibrator = remember { ContextCompat.getSystemService(context, Vibrator::class.java) }
+    val coroutineScope = rememberCoroutineScope()
     
     var isSpinning by remember { mutableStateOf(false) }
     var currentRotation by remember { mutableStateOf(0f) }
@@ -65,7 +71,7 @@ fun SpinnerGame() {
     
     val rotation by animateFloatAsState(
         targetValue = targetRotation,
-        animationSpec = tween(durationMillis = if (isSpinning) 3000 else 0),
+        animationSpec = tween(durationMillis = if (isSpinning) 4000 else 0),
         label = "rotation"
     )
     
@@ -73,7 +79,7 @@ fun SpinnerGame() {
     LaunchedEffect(isSpinning) {
         if (isSpinning) {
             // Generate random rotation (multiple full spins + random section)
-            val baseSpins = (3..6).random() // 3-6 full rotations
+            val baseSpins = (8..15).random() // 8-15 full rotations for crazy spinning!
             val randomSection = (0..3).random() * 90f // Random section (0, 90, 180, 270)
             val randomOffset = (0..89).random().toFloat() // Random position within section
             val finalRotation = baseSpins * 360f + randomSection + randomOffset
@@ -81,7 +87,7 @@ fun SpinnerGame() {
             targetRotation = finalRotation
             
             // Wait for animation to complete
-            kotlinx.coroutines.delay(3000)
+            kotlinx.coroutines.delay(4000) // Longer animation for more dramatic effect
             
             // Get challenge based on final rotation
             val challenge = challengeManager.getChallengeFromRotation(finalRotation)
@@ -119,6 +125,57 @@ fun SpinnerGame() {
         Box(
             modifier = Modifier
                 .size(300.dp)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            if (!isSpinning) {
+                                // Start manual spinning
+                                isSpinning = true
+                                val center = androidx.compose.ui.geometry.Offset(150f, 150f) // Fixed center for 300dp wheel
+                                val angle = calculateAngle(center, offset)
+                                targetRotation = currentRotation + angle
+                            }
+                        },
+                        onDrag = { change, _ ->
+                            if (!isSpinning) {
+                                val center = androidx.compose.ui.geometry.Offset(150f, 150f) // Fixed center for 300dp wheel
+                                val angle = calculateAngle(center, change.position)
+                                val newRotation = currentRotation + angle
+                                targetRotation = newRotation
+                                currentRotation = newRotation
+                            }
+                        },
+                        onDragEnd = {
+                            if (!isSpinning) {
+                                // Add some momentum for natural feel
+                                val momentum = (targetRotation - currentRotation) * 2f
+                                targetRotation = currentRotation + momentum
+                                isSpinning = true
+                                
+                                // Wait for momentum to settle
+                                coroutineScope.launch {
+                                    kotlinx.coroutines.delay(2000)
+                                    if (isSpinning) {
+                                        // Get challenge based on final rotation
+                                        val challenge = challengeManager.getChallengeFromRotation(targetRotation)
+                                        
+                                        // Update state
+                                        isSpinning = false
+                                        currentRotation = targetRotation
+                                        currentChallenge = challenge
+                                        currentCategory = challenge.category
+                                        
+                                        // Vibrate for challenge reveal
+                                        vibrator?.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+                                        
+                                        // Show success message
+                                        Toast.makeText(context, "🎉 ${challenge.color.colorName} CHALLENGE! 🎉", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
                 .clickable(
                     enabled = !isSpinning
                 ) {
@@ -138,12 +195,21 @@ fun SpinnerGame() {
             // Center pointer
             Canvas(
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(30.dp)
                     .align(Alignment.TopCenter)
             ) {
                 drawPointer()
             }
         }
+        
+        // Instructions
+        Text(
+            text = "Drag the wheel like a DJ deck or tap SPIN!",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+            textAlign = TextAlign.Center
+        )
         
         // Spin Button
         Button(
@@ -154,7 +220,7 @@ fun SpinnerGame() {
             },
             enabled = !isSpinning,
             modifier = Modifier
-                .padding(top = 24.dp)
+                .padding(top = 8.dp)
                 .height(56.dp)
                 .width(200.dp)
         ) {
@@ -227,7 +293,7 @@ fun SpinnerGame() {
 }
 
 fun DrawScope.drawSpinnerWheel() {
-    val center = Offset(size.width / 2, size.height / 2)
+    val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
     val radius = size.width / 2
     
     // Draw four colored sections
@@ -248,7 +314,7 @@ fun DrawScope.drawSpinnerWheel() {
                 startAngle = 0f,
                 sweepAngle = sweepAngle,
                 useCenter = true,
-                topLeft = Offset(center.x - radius, center.y - radius),
+                topLeft = androidx.compose.ui.geometry.Offset(center.x - radius, center.y - radius),
                 size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2)
             )
         }
@@ -263,9 +329,9 @@ fun DrawScope.drawSpinnerWheel() {
 }
 
 fun DrawScope.drawPointer() {
-    val center = Offset(size.width / 2, size.height / 2)
+    val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
     
-    // Draw triangle pointer
+    // Draw triangle pointer with better visibility
     val path = androidx.compose.ui.graphics.Path().apply {
         moveTo(center.x, center.y - size.height / 2)
         lineTo(center.x - size.width / 2, center.y)
@@ -273,6 +339,13 @@ fun DrawScope.drawPointer() {
         close()
     }
     
+    // Draw white outline first
+    drawPath(
+        path = path,
+        color = Color.White
+    )
+    
+    // Draw black fill
     drawPath(
         path = path,
         color = Color.Black
@@ -286,5 +359,11 @@ fun getColorForChallenge(color: ChallengeColor): Color {
         ChallengeColor.GREEN -> Color(0xFF45B7D1)
         ChallengeColor.YELLOW -> Color(0xFFFFE66D)
     }
+}
+
+fun calculateAngle(center: androidx.compose.ui.geometry.Offset, point: androidx.compose.ui.geometry.Offset): Float {
+    val dx = point.x - center.x
+    val dy = point.y - center.y
+    return Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
 }
 
