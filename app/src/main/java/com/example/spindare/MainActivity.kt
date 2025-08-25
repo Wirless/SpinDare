@@ -60,126 +60,76 @@ fun SpinnerGame() {
     val context = LocalContext.current
     val challengeManager = remember { ChallengeManager(context) }
     val vibrator = remember { ContextCompat.getSystemService(context, Vibrator::class.java) }
-    
+
     var isSpinning by remember { mutableStateOf(false) }
     var currentRotation by remember { mutableStateOf(0f) }
     var targetRotation by remember { mutableStateOf(0f) }
     var currentChallenge by remember { mutableStateOf<Challenge?>(null) }
     var currentCategory by remember { mutableStateOf("") }
-    var isWinningColor by remember { mutableStateOf(false) }
     var winningColor by remember { mutableStateOf<ChallengeColor?>(null) }
+    var overlayProgress by remember { mutableStateOf(0f) }
     var wheelScale by remember { mutableStateOf(1f) }
     var wheelWobble by remember { mutableStateOf(0f) }
-    var colorOverlayProgress by remember { mutableStateOf(0f) }
-    
+
     val rotation by animateFloatAsState(
         targetValue = targetRotation,
-        animationSpec = tween(durationMillis = if (isSpinning) 4000 else 300),
+        animationSpec = tween(durationMillis = 4000),
         label = "rotation"
     )
-    
+
     val scale by animateFloatAsState(
         targetValue = wheelScale,
-        animationSpec = tween(durationMillis = 300),
-        label = "scale"
+        animationSpec = tween(durationMillis = 300)
     )
-    
+
     val wobble by animateFloatAsState(
         targetValue = wheelWobble,
-        animationSpec = tween(durationMillis = 200),
-        label = "wobble"
+        animationSpec = tween(durationMillis = 200)
     )
-    
-    val overlayProgress by animateFloatAsState(
-        targetValue = colorOverlayProgress,
-        animationSpec = tween(durationMillis = 1000),
-        label = "overlay"
-    )
-    
-    // Handle spinning logic with dramatic color change
+
     LaunchedEffect(isSpinning) {
         if (isSpinning) {
-            // Check if this is a manual drag (targetRotation already set)
-            val isManualDrag = targetRotation != currentRotation
-            
-            if (!isManualDrag) {
-                // Generate random rotation for automatic spinning
-                val baseSpins = (8..15).random() // 8-15 full rotations for crazy spinning!
-                val randomSection = (0..3).random() * 90f // Random section (0, 90, 180, 270)
-                val randomOffset = (0..89).random().toFloat() // Random position within section
-                val finalRotation = baseSpins * 360f + randomSection + randomOffset
-                targetRotation = currentRotation + finalRotation
-                
-                // Ensure we have significant rotation for visual effect
-                if (finalRotation < 1000f) {
-                    targetRotation = currentRotation + 1000f + (0..360).random().toFloat()
-                }
+            // Pick a random color
+            val color = listOf(
+                ChallengeColor.RED,
+                ChallengeColor.BLUE,
+                ChallengeColor.GREEN,
+                ChallengeColor.YELLOW
+            ).random()
+            winningColor = color
+
+            // Calculate the rotation to land on it
+            targetRotation = currentRotation + calculateRotationForColor(color)
+
+            // Delay before starting overlay
+            overlayProgress = 0f
+            delay(2500L)
+
+            // Smoothly expand overlay
+            for (i in 0..100) {
+                overlayProgress = i / 100f
+                delay(10)
             }
-            
-            // Wait for animation to complete (shorter for manual drags)
-            val delayTime = if (isManualDrag) 2000L else 4000L
-            
-            // Start color overlay BEFORE spinning ends (like Pac-Man eating the wheel)
-            val overlayStartTime = delayTime - 1000L // Start overlay 1 second before end
-            kotlinx.coroutines.delay(overlayStartTime)
-            
-            // FIRST: Generate which color the challenge should be
-            val targetColor = listOf(ChallengeColor.RED, ChallengeColor.BLUE, ChallengeColor.GREEN, ChallengeColor.YELLOW).random()
-            val challenge = challengeManager.getRandomChallengeByColor(targetColor)
-            
-            // Start the Pac-Man effect - color gradually covers the wheel
-            winningColor = targetColor
-            isWinningColor = true
-            colorOverlayProgress = 0f
-            
-            // THEN: Calculate the rotation needed to land on that color
-            val targetRotationForColor = calculateRotationForColor(targetColor)
-            targetRotation = currentRotation + targetRotationForColor
-            
-            // Continue the overlay animation while finishing the spin
-            kotlinx.coroutines.delay(1000L)
-            colorOverlayProgress = 1f
-            
-            // Update state
-            isSpinning = false
-            currentRotation = targetRotation
+
+            // Reveal challenge
+            val challenge = challengeManager.getRandomChallengeByColor(color)
             currentChallenge = challenge
             currentCategory = challenge.category
-            
-            // Vibrate for challenge reveal
+
             vibrator?.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
-            
-            // Show success message
             Toast.makeText(context, "🎉 ${challenge.color.colorName} CHALLENGE! 🎉", Toast.LENGTH_SHORT).show()
+
+            currentRotation = targetRotation
+            isSpinning = false
         }
     }
-    
-    // Handle dramatic color change effect
-    LaunchedEffect(currentChallenge) {
-        if (currentChallenge != null) {
-            // Add ripple effect (10% size increase)
-            wheelScale = 1.1f
-            kotlinx.coroutines.delay(300)
-            wheelScale = 1f
-            
-            // Add wobble effect with sinus wave
-            repeat(5) {
-                wheelWobble = 5f
-                kotlinx.coroutines.delay(100)
-                wheelWobble = -5f
-                kotlinx.coroutines.delay(100)
-            }
-            wheelWobble = 0f
-        }
-    }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Title
         Text(
             text = "SPIN & DARE",
             fontSize = 32.sp,
@@ -187,57 +137,24 @@ fun SpinnerGame() {
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 32.dp)
         )
-        
-                // Spinner Wheel
+
         Box(
             modifier = Modifier
                 .size(300.dp)
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            if (!isSpinning) {
-                                // Start manual spinning
-                                val center = androidx.compose.ui.geometry.Offset(150f, 150f) // Fixed center for 300dp wheel
-                                val angle = calculateAngle(center, offset)
-                                val newRotation = currentRotation + angle
-                                targetRotation = newRotation
-                                isSpinning = true
-                            }
-                        },
-                        onDrag = { change, _ ->
-                            if (!isSpinning) {
-                                val center = androidx.compose.ui.geometry.Offset(150f, 150f) // Fixed center for 300dp wheel
-                                val angle = calculateAngle(center, change.position)
-                                val newRotation = currentRotation + angle
-                                targetRotation = newRotation
-                            }
-                        },
-                        onDragEnd = {
-                            if (!isSpinning) {
-                                // Add some momentum for natural feel
-                                val momentum = (targetRotation - currentRotation) * 2f
-                                targetRotation = currentRotation + momentum
-                                isSpinning = true
-                            }
-                        }
-                    )
-                }
- 
         ) {
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
-                    .rotate(rotation + wheelWobble)
-                    .scale(wheelScale)
+                    .rotate(rotation + wobble)
+                    .scale(scale)
             ) {
-                if (isWinningColor && winningColor != null) {
+                if (winningColor != null) {
                     drawPacManWheel(winningColor!!, overlayProgress)
                 } else {
                     drawSpinnerWheel()
                 }
             }
-            
-            // Center pointer
+
             Canvas(
                 modifier = Modifier
                     .size(30.dp)
@@ -246,41 +163,18 @@ fun SpinnerGame() {
                 drawPointer()
             }
         }
-        
-        // Instructions
-        Text(
-            text = "Drag the wheel like a DJ deck or tap SPIN!",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-            textAlign = TextAlign.Center
-        )
-        
-        // Debug info - show current rotation and target color
-        if (currentChallenge != null) {
-            Text(
-                text = "Wheel landed on: ${currentChallenge!!.color.colorName} | Rotation: ${(currentRotation % 360).toInt()}°",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        
-        // Spin Button
+
         Button(
             onClick = {
                 if (!isSpinning) {
-                    // Reset to show all colors while spinning
-                    isWinningColor = false
                     winningColor = null
-                    colorOverlayProgress = 0f
+                    overlayProgress = 0f
                     isSpinning = true
                 }
             },
             enabled = !isSpinning,
             modifier = Modifier
-                .padding(top = 8.dp)
+                .padding(top = 16.dp)
                 .height(56.dp)
                 .width(200.dp)
         ) {
@@ -290,16 +184,13 @@ fun SpinnerGame() {
                 fontWeight = FontWeight.Bold
             )
         }
-        
-        // Challenge Display
+
         if (currentChallenge != null) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = getColorForChallenge(currentChallenge!!.color)
-                ),
+                colors = CardDefaults.cardColors(containerColor = getColorForChallenge(currentChallenge!!.color)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(
@@ -313,7 +204,7 @@ fun SpinnerGame() {
                         color = Color.White,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    
+
                     Text(
                         text = currentChallenge!!.description,
                         fontSize = 18.sp,
@@ -325,14 +216,11 @@ fun SpinnerGame() {
                 }
             }
         } else {
-            // Initial state
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
@@ -340,7 +228,7 @@ fun SpinnerGame() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Tap the wheel or press SPIN to start!",
+                        text = "Press SPIN to start!",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -450,8 +338,8 @@ fun calculateRotationForColor(targetColor: ChallengeColor): Float {
     // Add random offset within the section (0-89 degrees)
     val randomOffset = (0..89).random().toFloat()
     
-    // Add multiple full rotations for dramatic effect (3-6 full spins)
-    val fullSpins = (3..6).random() * 360f
+    // Add fewer full rotations for smoother transitions (2-4 full spins)
+    val fullSpins = (2..4).random() * 360f
     
     return fullSpins + baseRotation + randomOffset
 }
