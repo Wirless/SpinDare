@@ -33,8 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.spindare.ui.theme.SpinDareTheme
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.rememberCoroutineScope
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
@@ -61,7 +59,6 @@ fun SpinnerGame() {
     val context = LocalContext.current
     val challengeManager = remember { ChallengeManager(context) }
     val vibrator = remember { ContextCompat.getSystemService(context, Vibrator::class.java) }
-    val coroutineScope = rememberCoroutineScope()
     
     var isSpinning by remember { mutableStateOf(false) }
     var currentRotation by remember { mutableStateOf(0f) }
@@ -71,30 +68,41 @@ fun SpinnerGame() {
     
     val rotation by animateFloatAsState(
         targetValue = targetRotation,
-        animationSpec = tween(durationMillis = if (isSpinning) 4000 else 0),
+        animationSpec = tween(durationMillis = if (isSpinning) 4000 else 300),
         label = "rotation"
     )
     
     // Handle spinning logic
     LaunchedEffect(isSpinning) {
         if (isSpinning) {
-            // Generate random rotation (multiple full spins + random section)
-            val baseSpins = (8..15).random() // 8-15 full rotations for crazy spinning!
-            val randomSection = (0..3).random() * 90f // Random section (0, 90, 180, 270)
-            val randomOffset = (0..89).random().toFloat() // Random position within section
-            val finalRotation = baseSpins * 360f + randomSection + randomOffset
+            // Check if this is a manual drag (targetRotation already set)
+            val isManualDrag = targetRotation != currentRotation
             
-            targetRotation = finalRotation
+            if (!isManualDrag) {
+                // Generate random rotation for automatic spinning
+                val baseSpins = (8..15).random() // 8-15 full rotations for crazy spinning!
+                val randomSection = (0..3).random() * 90f // Random section (0, 90, 180, 270)
+                val randomOffset = (0..89).random().toFloat() // Random position within section
+                val finalRotation = baseSpins * 360f + randomSection + randomOffset
+                targetRotation = currentRotation + finalRotation
+                
+                // Ensure we have significant rotation for visual effect
+                if (finalRotation < 1000f) {
+                    targetRotation = currentRotation + 1000f + (0..360).random().toFloat()
+                }
+            }
             
-            // Wait for animation to complete
-            kotlinx.coroutines.delay(4000) // Longer animation for more dramatic effect
+            // Wait for animation to complete (shorter for manual drags)
+            val delayTime = if (isManualDrag) 2000L else 4000L
+            kotlinx.coroutines.delay(delayTime)
             
-            // Get challenge based on final rotation
-            val challenge = challengeManager.getChallengeFromRotation(finalRotation)
+            // Get challenge based on VISUAL COLOR the pointer is pointing at
+            val visualColor = getVisualColorAtPointer(targetRotation)
+            val challenge = challengeManager.getRandomChallengeByColor(visualColor)
             
             // Update state
             isSpinning = false
-            currentRotation = finalRotation
+            currentRotation = targetRotation
             currentChallenge = challenge
             currentCategory = challenge.category
             
@@ -130,10 +138,11 @@ fun SpinnerGame() {
                         onDragStart = { offset ->
                             if (!isSpinning) {
                                 // Start manual spinning
-                                isSpinning = true
                                 val center = androidx.compose.ui.geometry.Offset(150f, 150f) // Fixed center for 300dp wheel
                                 val angle = calculateAngle(center, offset)
-                                targetRotation = currentRotation + angle
+                                val newRotation = currentRotation + angle
+                                targetRotation = newRotation
+                                isSpinning = true
                             }
                         },
                         onDrag = { change, _ ->
@@ -142,7 +151,6 @@ fun SpinnerGame() {
                                 val angle = calculateAngle(center, change.position)
                                 val newRotation = currentRotation + angle
                                 targetRotation = newRotation
-                                currentRotation = newRotation
                             }
                         },
                         onDragEnd = {
@@ -151,38 +159,11 @@ fun SpinnerGame() {
                                 val momentum = (targetRotation - currentRotation) * 2f
                                 targetRotation = currentRotation + momentum
                                 isSpinning = true
-                                
-                                // Wait for momentum to settle
-                                coroutineScope.launch {
-                                    kotlinx.coroutines.delay(2000)
-                                    if (isSpinning) {
-                                        // Get challenge based on final rotation
-                                        val challenge = challengeManager.getChallengeFromRotation(targetRotation)
-                                        
-                                        // Update state
-                                        isSpinning = false
-                                        currentRotation = targetRotation
-                                        currentChallenge = challenge
-                                        currentCategory = challenge.category
-                                        
-                                        // Vibrate for challenge reveal
-                                        vibrator?.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
-                                        
-                                        // Show success message
-                                        Toast.makeText(context, "🎉 ${challenge.color.colorName} CHALLENGE! 🎉", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
                             }
                         }
                     )
                 }
-                .clickable(
-                    enabled = !isSpinning
-                ) {
-                    if (!isSpinning) {
-                        isSpinning = true
-                    }
-                }
+
         ) {
             Canvas(
                 modifier = Modifier
@@ -210,6 +191,18 @@ fun SpinnerGame() {
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
             textAlign = TextAlign.Center
         )
+        
+        // Debug info - show current rotation and detected color
+        if (currentChallenge != null) {
+            val visualColor = getVisualColorAtPointer(currentRotation)
+            Text(
+                text = "Pointer at: ${visualColor.colorName} | Rotation: ${(currentRotation % 360).toInt()}°",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+                textAlign = TextAlign.Center
+            )
+        }
         
         // Spin Button
         Button(
@@ -300,7 +293,7 @@ fun DrawScope.drawSpinnerWheel() {
     val colors = listOf(
         Color(0xFFFF6B6B), // Red
         Color(0xFF4ECDC4), // Blue
-        Color(0xFF45B7D1), // Green
+        Color(0xFF4CAF50), // Green (actually green now!)
         Color(0xFFFFE66D)  // Yellow
     )
     
@@ -365,5 +358,42 @@ fun calculateAngle(center: androidx.compose.ui.geometry.Offset, point: androidx.
     val dx = point.x - center.x
     val dy = point.y - center.y
     return Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+}
+
+
+
+fun getVisualColorAtPointer(rotation: Float): ChallengeColor {
+    // This function shows what color is ACTUALLY visually at the pointer
+    // based on the wheel drawing logic
+    
+    val normalizedRotation = (rotation % 360 + 360) % 360
+    
+    // Looking at the wheel drawing code:
+    // colors.forEachIndexed { index, color ->
+    //     val startAngle = index * 90f  // 0°, 90°, 180°, 270°
+    //     val sweepAngle = 90f
+    // }
+    // 
+    // So the sections are:
+    // index 0: RED starts at 0° (top-right)
+    // index 1: BLUE starts at 90° (bottom-right)  
+    // index 2: GREEN starts at 180° (bottom-left)
+    // index 3: YELLOW starts at 270° (top-left)
+    
+    // The pointer is at the top (0°), so we need to see what section is at the top
+    // after the wheel has rotated. Since the wheel rotates clockwise, we need to
+    // find which section is now at the top position.
+    
+    // The rotation is the angle the wheel has turned, so the section at the top
+    // is the one that was at (rotation) degrees from the original top position
+    val sectionAtTop = normalizedRotation
+    
+    return when {
+        sectionAtTop >= 0 && sectionAtTop < 90 -> ChallengeColor.RED
+        sectionAtTop >= 90 && sectionAtTop < 180 -> ChallengeColor.BLUE
+        sectionAtTop >= 180 && sectionAtTop < 270 -> ChallengeColor.GREEN
+        sectionAtTop >= 270 && sectionAtTop < 360 -> ChallengeColor.YELLOW
+        else -> ChallengeColor.RED // Fallback
+    }
 }
 

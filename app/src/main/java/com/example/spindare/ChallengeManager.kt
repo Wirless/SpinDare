@@ -31,27 +31,20 @@ class ChallengeManager(private val context: Context) {
      * Determine challenge color based on wheel rotation angle
      * @param degrees Rotation angle in degrees (0-360)
      * @return The color section the wheel landed on
+     * @deprecated Use getRandomChallengeByColor directly instead
      */
     fun getColorFromRotation(degrees: Float): ChallengeColor {
-        val normalizedDegrees = (degrees + 360) % 360
-        
-        // The wheel is drawn with RED at top (0°), BLUE at right (90°), GREEN at bottom (180°), YELLOW at left (270°)
-        // But when we rotate the wheel, we need to account for the rotation direction
-        return when {
-            normalizedDegrees >= 0 && normalizedDegrees < 90 -> ChallengeColor.RED
-            normalizedDegrees >= 90 && normalizedDegrees < 180 -> ChallengeColor.BLUE
-            normalizedDegrees >= 180 && normalizedDegrees < 270 -> ChallengeColor.GREEN
-            normalizedDegrees >= 270 && normalizedDegrees < 360 -> ChallengeColor.YELLOW
-            else -> ChallengeColor.RED // Fallback
-        }
+        // This function is deprecated - use getRandomChallengeByColor directly
+        return ChallengeColor.RED // Fallback
     }
 
     /**
      * Get a random challenge from the color determined by wheel rotation
+     * @deprecated Use getRandomChallengeByColor directly instead
      */
     fun getChallengeFromRotation(degrees: Float): Challenge {
-        val color = getColorFromRotation(degrees)
-        return getRandomChallengeByColor(color)
+        // This function is deprecated - use getRandomChallengeByColor directly
+        return getRandomChallenge()
     }
 
     /**
